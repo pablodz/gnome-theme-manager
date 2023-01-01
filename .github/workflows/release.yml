@@ -29,6 +29,6 @@ jobs:
           goarch: ${{ matrix.goarch }}
           binary_name: "gnome-theme-manager"
           ldflags: "-s -w"
-          build_flags: "tags=fyne"
+          build_flags: "-tags fyne"
           extra_files: LICENSE README.md
           compress_assets: false
