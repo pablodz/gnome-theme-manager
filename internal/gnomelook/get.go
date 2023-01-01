@@ -3,7 +3,6 @@ package gnomelook
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -26,7 +25,7 @@ func GetDataFromScraper() error {
 		return fmt.Errorf("error getting data from scraper: %d", rCode)
 	}
 
-	log.Println(rBody)
+	// log.Println(rBody)
 
 	err = json.Unmarshal([]byte(rBody), &DATA_THEMES)
 	if err != nil {
@@ -37,14 +36,18 @@ func GetDataFromScraper() error {
 
 }
 
-func GetNames() []string {
+func GetItems() ([]string, []string, []string) {
 
-	list := []string{}
+	longRepos := []string{}
+	shortRepos := []string{}
+	zipUrls := []string{}
 	for _, theme := range DATA_THEMES {
 		fullRepo := theme.Sources.Repository
-		shortRepo := fullRepo[strings.LastIndex(fullRepo, "/")+1:]
-		list = append(list, shortRepo)
+		longRepos = append(longRepos, fullRepo)
+		zipUrls = append(zipUrls, theme.Sources.ZipURL)
+		sR := fullRepo[strings.LastIndex(fullRepo, "/")+1:]
+		shortRepos = append(shortRepos, sR)
 	}
 
-	return list
+	return longRepos, shortRepos, zipUrls
 }
