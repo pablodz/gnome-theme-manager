@@ -4,31 +4,33 @@ on:
   release:
     types: [created]
 
+# set variables
+env:
+  MYAPP: gnme-theme-manager
+
 jobs:
-  releases-matrix:
-    name: Release Go Binary
+  build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
-        goos: [linux]
-        goarch: ["386", amd64, arm64]
-        exclude:
-          - goarch: "386"
-            goos: darwin
-          - goarch: arm64
-            goos: windows
     steps:
       - uses: actions/checkout@v2
-      # - name: Run tests
-      #   run: go test -v -p=1 -timeout=0 ./...
-      - uses: wangyoucao577/go-release-action@v1.34
+      - name: Build for Linux
+        run: |
+          go build -o ${MYAPP} -ldflags="-s -w" -v -tags fyne -ldflags="-H windowsgui" GOOS=linux GOARCH=386
+          tar -czf ${MYAPP}-386.tar.gz ${MYAPP}
+          go build -o ${MYAPP} -ldflags="-s -w" -v -tags fyne -ldflags="-H windowsgui" GOOS=linux GOARCH=amd64
+          tar -czf ${MYAPP}-amd64.tar.gz ${MYAPP}
+          go build -o ${MYAPP} -ldflags="-s -w" -v -tags fyne -ldflags="-H windowsgui" GOOS=linux GOARCH=arm64
+          tar -czf ${MYAPP}-arm64.tar.gz ${MYAPP}
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          binary_name: "gnome-theme-manager"
-          # ldflags: "-s -w"
-          build_flags: "-tags fyne"
-          extra_files: LICENSE README.md
-          compress_assets: false
+          tag_name: v1.0
+          release_name: Release v1.0
+          draft: false
+          prerelease: false
+          files: |
+            ${MYAPP}-386.tar.gz
+            ${MYAPP}-amd64.tar.gz
+            ${MYAPP}-arm64.tar.gz
